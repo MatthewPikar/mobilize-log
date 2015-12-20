@@ -17,7 +17,7 @@
     "fs": "0.0.2",
     "lodash": "^3.10.1",
     "seneca": "^0.9.2",
-    "seneca-redis-queue-transport": "^0.2.0"
+    "seneca-redis-transport": "^0.3.0"
   },
   "devDependencies": {
     "mocha": "^2.3.4"
