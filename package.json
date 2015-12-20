@@ -1,0 +1,25 @@
+{
+  "name": "log",
+  "version": "0.0.1",
+  "description": "Wraps logging implementation and actively logs all seneca actions.",
+  "author": {
+    "name": "Matthew Pikar",
+    "email": "matthew.pikar@gmail.com"
+  },
+  "private": true,
+  "main": "log.js",
+  "scripts": {
+    "start": "node logService.js",
+    "test": "mocha test/*.test.js"
+  },
+  "dependencies": {
+    "bunyan": "^1.5.1",
+    "fs": "0.0.2",
+    "lodash": "^3.10.1",
+    "seneca": "^0.9.2",
+    "seneca-redis-queue-transport": "^0.2.0"
+  },
+  "devDependencies": {
+    "mocha": "^2.3.4"
+  }
+}
