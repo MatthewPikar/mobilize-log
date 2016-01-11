@@ -1,17 +1,17 @@
-"use strict";
+"use strict"
 
-var _ = require('lodash');
-var fs = require('fs');
+var _ = require('lodash')
+var fs = require('fs')
 var bunyan = require('bunyan'),
     masterLog = bunyan.createLogger({
         name: 'mobilize',
         level: 'fatal',
         serializers: {response: responseSerializer}
     }),
-    infoLog, errorLog, debugLog;
+    infoLog, errorLog, debugLog
 
 module.exports = function log(options) {
-    var seneca = this;
+    var seneca = this
 
     options = _.extend({
         context: 'request',
@@ -21,11 +21,11 @@ module.exports = function log(options) {
         logClientErrors: false,
         logInternalErrors: true,
         pins: ['r']
-    }, options);
+    }, options)
 
     // make sure logPath exists and is writable
     try {fs.accessSync(options.logPath, fs.W_OK)}
-    catch(err){fs.mkdirSync(options.logPath);}
+    catch(err){fs.mkdirSync(options.logPath)}
 
     // create logs
     infoLog = masterLog.child({
@@ -36,7 +36,7 @@ module.exports = function log(options) {
                 path: options.logPath + 'info-' + options.context + ".log",
                 period: '2d', count: 1
             }
-        ]});
+        ]})
     errorLog = masterLog.child({
         widget_type: options.context,
         streams: [
@@ -46,7 +46,7 @@ module.exports = function log(options) {
                 period: '1w', count: 2
             },
             {name: 'stdout', level: 'error', stream: process.stdout}
-        ]});
+        ]})
     debugLog = masterLog.child({
         widget_type: options.context,
         streams: [
@@ -55,50 +55,68 @@ module.exports = function log(options) {
                 path: options.logPath + 'debug-' + options.context + ".log",
                 period: '4h', count: 0
             }
-        ]});
+        ]})
+
+    seneca
+        .add({role:'log', cmd:'error'}, logErrors)
+        .add({role:'log', cmd:'info'}, logInfo)
+        .add({role:'log', cmd:'debug'}, logDebug)
 
     _.each(options.pins, function(pin){
-        seneca.add({role:pin, cmd:'get'}, actionLog);
-        seneca.add({role:pin, cmd:'query'}, actionLog);
-        seneca.add({role:pin, cmd:'add'}, actionLog);
-        seneca.add({role:pin, cmd:'modify'}, actionLog);
-        seneca.add({role:pin, cmd:'delete'}, actionLog);
-    });
+        seneca.add({role:pin, cmd:'get'}, actionLog)
+        seneca.add({role:pin, cmd:'query'}, actionLog)
+        seneca.add({role:pin, cmd:'add'}, actionLog)
+        seneca.add({role:pin, cmd:'modify'}, actionLog)
+        seneca.add({role:pin, cmd:'delete'}, actionLog)
+    })
 
     function actionLog(args){
-        info(args, 'request received');
-        return null;
+        info(args, 'request received')
+        return null
+    }
+
+    function logErrors(args){
+        error(args, 'error received')
+        return null
+    }
+    function logInfo(args){
+        info(args, 'info received')
+        return null
+    }
+    function logDebug(args){
+        debug(args, 'debug received')
+        return null
     }
 
     function error(error, message){
         if(Array.isArray(message.resources) && message.resources.length > 0)
-            errorLog.error({resources: error}, message?message:'internal error');
-        else errorLog.error({err: error}, message?message:'internal error');
-        return true;
+            errorLog.error({resources: error}, message?message:'internal error')
+        else errorLog.error({err: error}, message?message:'internal error')
+        return true
     }
     function info(info, message){
         if(Array.isArray(message.resources) && message.resources.length > 0)
-            infoLog.info({resources: info}, message?message:'received');
-        else infoLog.info({info: info}, message?message:'received');
-        return true;
+            infoLog.info({resources: info}, message?message:'received')
+        else infoLog.info({info: info}, message?message:'received')
+        return true
     }
     function debug(debug, message){
         if(Array.isArray(message.resources) && message.resources.length > 0)
-            debugLog.debug({resources: debug}, message?message:'debug');
-        else debugLog.debug({debug: debug}, message?message:'debug');
-        return true;
+            debugLog.debug({resources: debug}, message?message:'debug')
+        else debugLog.debug({debug: debug}, message?message:'debug')
+        return true
     }
-};
+}
 
 function responseSerializer(message){
-    var res = [];
+    var res = []
 
     if(Array.isArray(message.resources) && message.resources.length > 0) {
         for (var i = 0, len = message.resources.length; i < len; i++) {
             res[i] = {
                 id: message.resources[i].id ? message.resources[i].id : 'empty',
                 name: message.resources[i].name ? message.resources[i].name : 'empty'
-            };
+            }
         }
     }
 
@@ -109,6 +127,5 @@ function responseSerializer(message){
         res: res,
         req: (message.request ? message.request : ''),
         err: (message.error ? message.error: '')
-    }}
-
-function passthrough(err, res){return null;}
+    }
+}

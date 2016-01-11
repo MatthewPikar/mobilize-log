@@ -5,7 +5,7 @@
 
 var _ = require('lodash');
 
-var pins = ['movements'];
+var pins = ['movements','actions','users'];
 var commandlineParameters = {};
 
 for(var i= 2, len=process.argv.length; i<len; i++){
