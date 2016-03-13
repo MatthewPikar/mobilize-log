@@ -16,7 +16,10 @@ for(var i= 2, len=process.argv.length; i<len; i++){
 
 var seneca = require('seneca')()
     .use('redis-transport')
-    .use('log.js', _.extend({pins:pins}, commandlineParameters));
+    .use('log.js', _.extend({pins:pins}, commandlineParameters))
+    .listen({type:'redis', pin:{role:'log', cmd:'error'}})
+    .listen({type:'redis', pin:{role:'log', cmd:'debug'}})
+    .listen({type:'redis', pin:{role:'log', cmd:'info'}})
 
 _.each(pins, function(pin){
     seneca.listen({type:'redis', pin:{role:pin, cmd:'get'}})
